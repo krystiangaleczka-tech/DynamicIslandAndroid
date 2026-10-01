@@ -128,6 +128,7 @@ Wymagania:
 - shared element continuity
 - gesty powiązane z bieżącym stanem animacji
 - możliwość przerwania animacji i płynnego przejścia do kolejnego stanu
+- motion tokens i zasady ruchu muszą być spójne z Material 3, z własnymi parametrami tylko tam, gdzie wymaga tego morphing wyspy
 
 ## 7. Gesty
 
@@ -152,6 +153,7 @@ Gesty nie mogą blokować interakcji z aplikacją pod overlayem poza faktycznym 
 - Notification Listener
 - MediaSession
 - persistence / ustawienia
+- wspólny Material 3 Design System
 
 ### P1
 
@@ -233,9 +235,62 @@ Nie używać `AccessibilityService` w MVP, jeśli dana funkcja jest możliwa pub
 
 Accessibility można dodać tylko dla konkretnej funkcji, której nie da się wiarygodnie zrealizować inaczej, po osobnej analizie zgodności z Google Play.
 
-## 14. Ustawienia aplikacji
+## 14. Design System — Material 3 (obowiązkowy)
 
-Ekrany ustawień wykonujemy w Material 3.
+Cały produkt ma być projektowany i implementowany w oparciu o Material 3. Material 3 jest twardym wymaganiem projektu, a nie opcjonalnym stylem ekranów ustawień.
+
+### 14.1 Ekrany aplikacji
+
+Wszystkie zwykłe ekrany aplikacji korzystają z Jetpack Compose Material 3 i wspólnego `MaterialTheme`:
+
+- onboarding
+- ustawienia
+- kalibracja wyspy
+- ekran roli dialera
+- dialer / keypad
+- historia / konfiguracja połączeń
+- permission flows
+- appearance
+- privacy
+- ekrany pomocnicze i diagnostyczne
+
+Nie tworzymy równoległego, niezależnego systemu komponentów dla tych ekranów.
+
+### 14.2 Dynamic Island jako custom Material 3 surface
+
+Sama wyspa jest niestandardowym komponentem o geometrii wymaganej przez cutout i model Dynamic Island, ale nadal należy do tego samego systemu projektowego Material 3.
+
+Musi korzystać ze wspólnych:
+
+- color roles / semantic colors
+- typography tokens
+- shape tokens
+- spacing / sizing tokens
+- iconography rules
+- state layers i interaction feedback
+- accessibility semantics
+- motion principles i motion tokens
+
+Wyspa może zachować czarne / bardzo ciemne tło wymagane do optycznego połączenia z otworem aparatu. Jest to świadomy wyjątek powierzchni, a nie drugi design system.
+
+Nie kopiujemy komponentów Cupertino 1:1. Kopiujemy użyteczny model zachowania Dynamic Island, ale wizualna implementacja Androida pozostaje spójna z Material 3.
+
+### 14.3 Material 3 theming
+
+Wymagane:
+
+- centralny `MaterialTheme`
+- light / dark theme dla ekranów aplikacji
+- dynamic color jako opcja, nie jako wymóg dla samej wyspy
+- pełne semantic color roles zamiast hardcodowanych kolorów, z wyjątkiem uzasadnionego bazowego koloru powierzchni wyspy
+- Material 3 typography scale
+- shape system
+- komponenty Material 3 tam, gdzie istnieje odpowiedni standardowy komponent
+- custom component tylko wtedy, gdy standardowy komponent nie realizuje wymaganego zachowania
+
+Szczegóły są definiowane w `DESIGN_SYSTEM.md`.
+
+## 15. Ustawienia aplikacji
 
 Minimum:
 
@@ -252,15 +307,16 @@ Minimum:
 - nawigacja
 - prywatność i uprawnienia
 
-Sama wyspa ma własny motion/design system i nie powinna wyglądać jak standardowy komponent Material 3.
+Cały settings UX musi korzystać z Material 3 i wspólnych tokenów z `DESIGN_SYSTEM.md`.
 
-## 15. Stack
+## 16. Stack
 
 Preferowany:
 
 - Kotlin
-- Jetpack Compose dla ustawień i ekranów aplikacji
-- Compose lub wyspecjalizowany custom renderer dla overlayu, zależnie od wyników prototypu wydajnościowego
+- Jetpack Compose
+- Material 3 jako obowiązkowy design system całej aplikacji
+- Compose lub wyspecjalizowany custom renderer dla overlayu, zależnie od wyników prototypu wydajnościowego; renderer musi przyjmować tokeny Material 3 z warstwy design systemu
 - Coroutines + Flow
 - DataStore
 - Android Telecom
@@ -268,7 +324,7 @@ Preferowany:
 - MediaSession APIs
 - WindowManager / DisplayCutout APIs
 
-## 16. Wymagania jakościowe
+## 17. Wymagania jakościowe
 
 - 60/120 Hz friendly
 - minimalny input latency
@@ -278,8 +334,10 @@ Preferowany:
 - stan rozmowy nie może zależeć tylko od UI
 - żadna ważna aktywność nie może zniknąć przez utratę focusu aplikacji
 - ograniczone zużycie baterii
+- spójność wizualna wszystkich ekranów z Material 3
+- brak lokalnych, przypadkowych wartości kolorów, typografii, radiusów i spacingu poza jawnie opisanymi wyjątkami design systemu
 
-## 17. Kryteria MVP
+## 18. Kryteria MVP
 
 MVP jest ukończone, gdy:
 
@@ -290,8 +348,11 @@ MVP jest ukończone, gdy:
 5. użytkownik po odebraniu rozmowy może korzystać z innych aplikacji bez obowiązkowego pełnoekranowego Call UI,
 6. media są wykrywane i sterowane,
 7. co najmniej dwa typy aktywności mogą współistnieć,
-8. restart procesu nie pozostawia martwego overlayu ani niespójnego stanu.
+8. restart procesu nie pozostawia martwego overlayu ani niespójnego stanu,
+9. onboarding, ustawienia, dialer i pozostałe ekrany są zgodne z Material 3 oraz korzystają z jednego design systemu.
 
-## 18. Cel UX
+## 19. Cel UX
 
-Użytkownik ma mieć wrażenie, że Dynamic Island jest częścią systemu operacyjnego, a nie aplikacją wyświetlającą prostokąt nad ekranem.
+Użytkownik ma mieć wrażenie, że Dynamic Island jest częścią systemu operacyjnego Android, a nie aplikacją wyświetlającą prostokąt nad ekranem.
+
+Produkt powinien łączyć płynność i model interakcji kojarzony z Dynamic Island z natywnym językiem wizualnym Material 3.
