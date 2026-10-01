@@ -13,6 +13,25 @@ The goal is to recreate the *behavioral model* of iOS Dynamic Island on Android:
 - automatic cutout/camera positioning
 - minimal obstruction of the app underneath
 - phone calls are a P0 feature
+- **Material 3 is the mandatory design system for the entire product**
+
+## Material 3
+
+All application UI is built around one Material 3 design system.
+
+This includes:
+
+- onboarding
+- settings
+- calibration
+- dialer
+- full-screen call UI
+- permissions and configuration
+- the Dynamic Island itself
+
+The island remains a custom surface because of its cutout geometry, compact states and morphing behavior, but it still uses the same Material 3 color roles, typography, shapes, spacing, iconography, accessibility rules and motion tokens.
+
+The project does **not** use a separate Cupertino/iOS design system. It recreates the Dynamic Island interaction model while keeping the Android implementation visually consistent with Material 3.
 
 ## Phone calls
 
@@ -43,7 +62,8 @@ Target behavior:
 
 - Kotlin
 - Jetpack Compose
-- Material 3 for settings screens
+- Compose Material 3
+- central Material 3 design system / theme
 - Coroutines + Flow
 - DataStore
 - Android Telecom
@@ -55,8 +75,9 @@ Target behavior:
 
 - [PRD.md](PRD.md) — product requirements and UX behavior
 - [ARCHITECTURE.md](ARCHITECTURE.md) — system architecture and state flow
+- [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md) — mandatory Material 3 design rules and tokens
 - [TASK.md](TASK.md) — implementation roadmap
 
 ## Product goal
 
-The island should feel like part of the operating system rather than an app drawing a rectangle over the screen.
+The island should feel like part of Android itself rather than an app drawing a rectangle over the screen: fluid like Dynamic Island, but designed and implemented as a native Material 3 Android experience.
