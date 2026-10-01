@@ -4,6 +4,8 @@
 
 Dynamic Island ma być jednym stale istniejącym obiektem UI, którego stan jest wyprowadzany z aktywności systemowych i aplikacyjnych. Nie projektujemy osobnych popupów dla połączeń, muzyki, timera itd.
 
+Cały produkt korzysta z jednego systemu projektowego: **Material 3**. Dotyczy to zarówno zwykłych ekranów aplikacji, jak i niestandardowego renderera wyspy.
+
 ## 2. High-level flow
 
 ```text
@@ -38,6 +40,13 @@ SYSTEM / APPS
 +-----------------------+
 |    PRESENTATION MODEL |
 | geometry / content    |
++-----------+-----------+
+            |
+            v
++-----------------------+
+| MATERIAL 3 TOKENS     |
+| color/type/shape      |
+| spacing/motion/state  |
 +-----------+-----------+
             |
             v
@@ -85,6 +94,23 @@ Odpowiada za:
 
 Nie powinien znać View/Compose.
 
+### design-system
+Jedno źródło prawdy dla UI. Implementuje Material 3 i wystawia tokeny oraz reusable components.
+
+Odpowiada za:
+- `MaterialTheme`
+- semantic color roles
+- typography
+- shapes
+- spacing / sizing
+- iconography
+- state layers
+- accessibility defaults
+- motion tokens
+- island-specific extensions, które nadal należą do wspólnego systemu
+
+Feature modules nie mogą definiować własnych niezależnych theme/token sets.
+
 ### presentation
 Buduje `IslandPresentationState`:
 - mode
@@ -94,6 +120,7 @@ Buduje `IslandPresentationState`:
 - primary content
 - secondary content
 - enabled actions
+- semantic presentation roles pobierane z design systemu
 
 ### motion
 Interpoluje pomiędzy presentation states.
@@ -107,8 +134,12 @@ Animowane właściwości:
 - content translation
 - anchors
 
+Motion Engine korzysta z Material 3 motion jako bazy. Specjalne spring/morph parametry wyspy są centralnymi tokenami design systemu, nie wartościami wpisywanymi lokalnie w feature UI.
+
 ### overlay
 Jedyna warstwa odpowiedzialna za WindowManager / overlay lifecycle.
+
+Renderer overlayu przyjmuje gotowy presentation state oraz design tokens. Nie powinien samodzielnie definiować kolorów, fontów, radiusów lub spacingu.
 
 ## 4. Telefonowanie
 
@@ -152,6 +183,8 @@ Nie przechowywać krytycznego call state wyłącznie w Composable lub overlay Vi
 Jeśli urządzenie jest odblokowane i overlay jest aktywny, połączenie ma być obsługiwane przez wyspę bez wymuszenia pełnoekranowego UI.
 
 Jeśli lockscreen / system wymaga pełnoekranowego incoming UI, używamy dedykowanego call screen zgodnie z Android Telecom.
+
+Zarówno expanded call island, jak i pełny call screen korzystają z tego samego Material 3 design systemu.
 
 ## 5. Priorytety
 
@@ -203,6 +236,8 @@ Interaktywna strefa powinna odpowiadać aktualnej geometrii wyspy oraz tylko tym
 
 Poza wyspą dotyk powinien trafiać do aplikacji pod spodem, z wyjątkiem świadomie zaprojektowanego expanded dismiss behavior.
 
+Material 3 interaction feedback i accessibility semantics obowiązują również dla overlay controls.
+
 ## 8. Cutout geometry
 
 `CutoutRepository` wylicza:
@@ -233,13 +268,36 @@ Przykłady:
 - brak overlay permission -> pokaż ustawienia/onboarding zamiast crasha
 - brak cutout info -> użyj profilu lub kalibracji
 
+Fallback UI również musi korzystać z Material 3.
+
 ## 11. UI technology
 
-Ustawienia: Jetpack Compose + Material 3.
+### Ekrany aplikacji
 
-Overlay: zacząć od prototypu Compose, ale utrzymać architekturę renderera tak, aby można było przejść na bardziej kontrolowany custom View/Canvas renderer, jeśli profilowanie pokaże problemy z latency, allocation lub morphingiem.
+Jetpack Compose + Compose Material 3.
 
-## 12. Testowalność
+Wszystkie zwykłe ekrany korzystają z jednego `MaterialTheme`, wspólnych semantic colors, typography, shapes i reusable components z modułu design-system.
+
+### Dynamic Island
+
+Overlay zaczynamy od prototypu Compose, ale utrzymujemy architekturę renderera tak, aby można było przejść na bardziej kontrolowany custom View/Canvas renderer, jeśli profilowanie pokaże problemy z latency, allocation lub morphingiem.
+
+Zmiana technologii renderera **nie może oznaczać zmiany design systemu**. Custom renderer musi otrzymywać te same Material 3 tokens co Compose UI.
+
+Wyspa pozostaje czarną / bardzo ciemną kapsułą, gdy jest to wymagane do wizualnego połączenia z cutoutem. Ten surface color jest kontrolowanym wyjątkiem w ramach Material 3 theme, a nie osobnym stylem Cupertino.
+
+## 12. Material 3 architecture rules
+
+1. Material 3 jest jedynym bazowym językiem projektowym aplikacji.
+2. Standardowy komponent Material 3 ma pierwszeństwo przed custom componentem, jeśli spełnia wymaganie UX.
+3. Custom components są dozwolone dla Dynamic Island i specyficznych interakcji, ale używają tych samych tokenów.
+4. Brak hardcodowanych feature-specific kolorów, fontów, radiusów i spacingu bez jawnego wpisania do design systemu.
+5. Light/dark theme dotyczy ekranów aplikacji; wyspa może używać kontrolowanego dark surface niezależnie od motywu.
+6. Dynamic color jest opcjonalnym źródłem theme colors dla aplikacji, nie może niszczyć czytelności wyspy.
+7. Accessibility, semantic roles, contrast i font scaling są częścią design systemu, nie końcowym polish pass.
+8. Szczegółowe reguły znajdują się w `DESIGN_SYSTEM.md`.
+
+## 13. Testowalność
 
 State Engine powinien być testowalny bez urządzenia.
 
@@ -251,3 +309,5 @@ Najważniejsze testy:
 - stale notification jest usuwane
 - animation target może zostać przerwany nowym stanem
 - process recreation odtwarza prawidłowy presentation state
+- UI nie omija centralnych Material 3 tokens
+- light/dark/dynamic-color variants zachowują czytelność i semantics
