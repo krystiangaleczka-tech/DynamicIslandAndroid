@@ -4,18 +4,38 @@
 
 Każdy task powinien kończyć się testowalnym rezultatem. Najpierw budujemy fundament i telefonowanie, potem integracje dodatkowe.
 
+**Material 3 jest obowiązkowym design systemem całego produktu.** Każdy task dotykający UI musi używać wspólnych tokenów, komponentów i zasad z `DESIGN_SYSTEM.md`. Nie wolno tworzyć lokalnego, niezależnego stylowania bez uzasadnionego wyjątku.
+
 ## Faza 0 — fundament repo i architektury
 
 ### TASK 1 — bootstrap aplikacji
 - Kotlin + Gradle
 - min/target SDK dobrane do aktualnego Androida
 - Jetpack Compose
-- Material 3 dla ekranów ustawień
+- Compose Material 3
+- centralny `MaterialTheme`
+- light/dark theme
+- wspólny system color/typography/shape tokens
 - Coroutines + Flow
 - DataStore
 - podstawowa struktura modułów
 
-**Done when:** aplikacja buduje się i uruchamia, istnieje ekran ustawień i podstawowe moduły core.
+**Done when:** aplikacja buduje się i uruchamia, istnieje ekran ustawień, podstawowe moduły core oraz jeden wspólny Material 3 theme używany przez UI.
+
+### TASK 1A — Material 3 Design System foundation
+Zaimplementować techniczną warstwę design systemu zgodną z `DESIGN_SYSTEM.md`:
+- semantic color roles
+- typography tokens
+- shape tokens
+- spacing/sizing tokens
+- icon rules
+- reusable Material 3 components
+- interaction/state layers
+- accessibility defaults
+- motion tokens
+- preview/test screen komponentów
+
+**Done when:** nowe ekrany i UI wyspy mogą korzystać z design tokens bez hardcodowania wartości wizualnych w feature modules.
 
 ### TASK 2 — model domenowy IslandActivity
 Zdefiniować wspólny model aktywności:
@@ -66,6 +86,7 @@ Obsłużyć:
 - touch region tylko w obrębie wyspy
 - lifecycle service
 - attach/detach bez flicker
+- renderer przyjmuje theme/design tokens zamiast lokalnych wartości UI
 
 ### TASK 6 — IslandGeometry
 Animowane parametry:
@@ -76,6 +97,7 @@ Animowane parametry:
 - content anchors
 - alpha
 - scale
+- geometry defaults oparte o wspólne sizing/shape tokens
 
 ### TASK 7 — Motion / Morph Engine
 - spring transitions
@@ -83,6 +105,8 @@ Animowane parametry:
 - shared continuity
 - animacja layoutu zamiast swapowania widoków
 - bez 1-frame flash
+- Material 3 motion jako baza
+- własne spring/morph tokens tylko jako jawne rozszerzenie design systemu
 
 ### TASK 8 — gesty
 - tap
@@ -90,6 +114,7 @@ Animowane parametry:
 - swipe
 - collapse po tap poza expanded
 - gesture arbitration
+- spójny interaction feedback zgodny z Material 3
 
 ## Faza 2 — telefonowanie P0
 
@@ -98,11 +123,14 @@ Animowane parametry:
 - oficjalny systemowy request
 - stan roli w ustawieniach
 - fallback, gdy użytkownik odmówi
+- onboarding UI w Material 3
 
 ### TASK 10 — ACTION_DIAL / minimal dialer shell
 - obsługa ACTION_DIAL
 - prosty ekran numeru / dialera
 - spełnienie wymagań roli domyślnego dialera
+- pełny ekran dialera w Material 3
+- standardowe Material 3 components tam, gdzie pasują
 
 ### TASK 11 — InCallService core
 - rejestracja InCallService
@@ -117,6 +145,7 @@ Animowane parametry:
 - kompaktowy incoming UI
 - transition incoming -> active
 - telefon odblokowany: bez wymuszonego full-screen Call UI
+- UI wyspy korzysta ze wspólnych color/type/icon/state tokens Material 3
 
 ### TASK 13 — active call compact UI
 - nazwa/numer
@@ -124,6 +153,7 @@ Animowane parametry:
 - zakończ
 - tap -> expanded
 - utrzymanie widoku podczas używania innych aplikacji
+- zgodność z Material 3 semantics i accessibility
 
 ### TASK 14 — expanded call controls
 - mute
@@ -132,12 +162,14 @@ Animowane parametry:
 - hang up
 - keypad entry point
 - hold/resume, jeśli dostępne
+- Material 3 iconography, semantic colors i interaction states
 
 ### TASK 15 — DTMF keypad
 - cyfry 0–9
 - * / #
 - poprawne start/stop DTMF
 - overlay interaction
+- Material 3 typography, sizing i touch targets
 
 ### TASK 16 — multiple calls
 - active + held
@@ -151,6 +183,7 @@ Animowane parametry:
 - incoming full-screen UI tylko gdy faktycznie potrzebny
 - poprawne zachowanie na lockscreen
 - brak konfliktu z odblokowanym overlay mode
+- full-screen Call UI spójny z Material 3
 
 ### TASK 18 — call resilience
 - process recreation
@@ -192,6 +225,7 @@ Przykłady:
 - waveform/equalizer animation
 - expanded player
 - progress
+- Material 3 typography, icons, semantic states i design tokens
 
 ## Faza 4 — system activities
 
@@ -200,6 +234,7 @@ Przykłady:
 - poziom baterii
 - transient animation
 - auto collapse
+- semantic colors z design systemu
 
 ### TASK 24 — Bluetooth / headphones
 - connected/disconnected
@@ -231,6 +266,7 @@ Przykłady:
 - focus switching
 - compact priority rules
 - morph split <-> expanded
+- zachowanie wspólnego Material 3 token systemu w obu częściach
 
 ### TASK 29 — activity history / restore
 - powrót do poprzedniej aktywności po zakończeniu dominującej
@@ -249,13 +285,22 @@ Przykłady:
 - wakeups
 - overlay invalidation
 
-### TASK 32 — visual fidelity pass
-- spacing
-- typography
-- easing/springs
+### TASK 32 — visual fidelity + Material 3 audit
+- spacing zgodny z design tokens
+- Material 3 typography
+- Material 3 semantic colors
+- Material 3 iconography
+- shape/radius tokens
+- state layers / pressed / focused / disabled
+- motion tokens oraz island-specific spring extensions
 - camera integration
 - compact/expanded proportions
-- dark-only island rendering
+- dark island rendering jako kontrolowany wyjątek surface color
+- accessibility contrast
+- font scale / display size
+- usunięcie przypadkowych hardcodowanych wartości UI
+
+**Done when:** UI całej aplikacji i wyspy przechodzi checklistę z `DESIGN_SYSTEM.md` i nie istnieje drugi, niezależny system wizualny.
 
 ### TASK 33 — onboarding permissions
 Kolejność i UX dla:
@@ -264,9 +309,10 @@ Kolejność i UX dla:
 - default dialer
 - Bluetooth / nearby devices, jeśli wymagane
 - battery optimizations only if necessary
+- wszystkie własne ekrany onboardingu w Material 3
 
 ### TASK 34 — settings UX
-Material 3:
+Pełny Material 3:
 - General
 - Position & calibration
 - Calls
@@ -277,11 +323,22 @@ Material 3:
 - Advanced
 - Privacy
 
+Wymagania:
+- standardowe Material 3 components przed custom components
+- wspólny `MaterialTheme`
+- light/dark
+- opcjonalny dynamic color
+- responsive/adaptive layouts
+- żadnych lokalnych kopii theme/tokenów
+
 ### TASK 35 — test matrix
 Minimum:
 - Samsung Galaxy S26 Ultra
 - urządzenie Pixel z centralnym cutoutem
 - różne density / font scale
+- light/dark theme
+- dynamic color on/off
+- accessibility contrast/semantics
 - lockscreen
 - Bluetooth headset
 - media + call
@@ -291,10 +348,10 @@ Minimum:
 
 ## Priorytet implementacji
 
-Najpierw: `1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8`
+Najpierw: `1 -> 1A -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8`.
 
 Następnie cały blok telefonu: `9 -> 18`.
 
 Dopiero potem media i pozostałe integracje.
 
-Powód: telefonowanie jest kluczowym wyróżnikiem produktu i musi wpływać na architekturę od początku, a nie być doklejone później.
+Powód: telefonowanie jest kluczowym wyróżnikiem produktu i musi wpływać na architekturę od początku, a Material 3 musi istnieć przed implementacją kolejnych ekranów, aby UI nie rozjechał się pomiędzy feature'ami.
